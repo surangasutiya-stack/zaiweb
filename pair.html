@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZANTA-XMD Pair</title>
+
+<style>
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  font-family:Arial,Helvetica,sans-serif;
+  color:#fff;
+}
+
+.box{
+  width:350px;
+  padding:30px;
+  border-radius:16px;
+  background:rgba(0,0,0,.4);
+  box-shadow:0 0 25px rgba(0,255,255,.4);
+  text-align:center;
+}
+
+h2{
+  margin-bottom:20px;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:none;
+  outline:none;
+  margin-bottom:15px;
+  font-size:16px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:#00e5ff;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:hover{
+  background:#00bcd4;
+}
+
+#result{
+  margin-top:20px;
+}
+
+a.whatsapp{
+  display:inline-block;
+  margin-top:15px;
+  padding:12px 20px;
+  background:#25D366;
+  color:#fff;
+  text-decoration:none;
+  border-radius:8px;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>🔗 ZANTA-XMD Pair</h2>
+
+  <input id="number" placeholder="947XXXXXXXX" />
+  <button onclick="getPair()">Generate Pair</button>
+
+  <div id="result"></div>
+</div>
+
+<script>
+async function getPair(){
+  const number = document.getElementById("number").value.trim();
+  const result = document.getElementById("result");
+
+  if(!number){
+    result.innerHTML = "❌ Number එක දාන්න";
+    return;
+  }
+
+  result.innerHTML = "⏳ Pair code generate වෙමින්...";
+
+  try{
+    const res = await fetch("/pair?number=" + number);
+    const data = await res.json();
+
+    if(data.code){
+      const waLink = `https://wa.me/${number}?text=${encodeURIComponent(data.code)}`;
+
+      result.innerHTML = `
+        <h3>✅ Pair Code</h3>
+        <b>${data.code}</b><br>
+
+        <a class="whatsapp" href="${waLink}" target="_blank">
+          WhatsApp එකට යන්න
+        </a>
+      `;
+    }else{
+      result.innerHTML = "❌ Pair code generate වෙන්නෙ නෑ";
+    }
+  }catch(e){
+    result.innerHTML = "❌ Server error";
+  }
+}
+</script>
+
+</body>
+</html>
