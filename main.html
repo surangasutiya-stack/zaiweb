@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>🫟 𝐙𝙰𝙽𝙏𝘼 𝐀𝙸 🫟</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #chatContainer {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 100px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .bubble-user {
+      background: #262626;
+      border-radius: 12px 12px 4px 12px;
+    }
+
+    .bubble-ai {
+      background: #1a1a1a;
+      border-radius: 12px 12px 12px 4px;
+    }
+
+    .message-bubble {
+      position: relative;
+    }
+
+    .message-bubble:hover .copy-btn {
+      opacity: 1;
+    }
+
+    .copy-btn {
+      opacity: 0;
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0,0,0,0.7);
+      padding: 4px 7px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      transition: opacity 0.2s;
+      cursor: pointer;
+    }
+
+    .timestamp {
+      font-size: 0.65rem;
+      color: #666;
+      margin-top: 3px;
+      text-align: right;
+    }
+
+    .loading-dots span {
+      animation: dot 1.4s infinite;
+    }
+
+    .loading-dots span:nth-child(2){animation-delay:.2s}
+    .loading-dots span:nth-child(3){animation-delay:.4s}
+
+    @keyframes dot {
+      0%,100%{opacity:.3}
+      50%{opacity:1}
+    }
+
+    .input-bar {
+      padding-bottom: env(safe-area-inset-bottom);
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(12px);
+    }
+
+    #filePreview {
+      max-height: 200px;
+      overflow: hidden;
+      border-radius: 12px;
+      margin-top: 8px;
+    }
+
+    #filePreview img, #filePreview video {
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="border-b border-gray-800 px-4 py-3 flex items-center gap-3 bg-black z-10">
+  <div class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+    <i class="fa-solid fa-robot text-cyan-400"></i>
+  </div>
+  <div>
+    <h1 class="text-base font-bold">🫟 𝐙𝙰𝙽𝙏𝘼 𝐀𝙸 🫟</h1>
+    <p class="text-[11px] text-gray-500">🫟 𝙿𝙾𝚆𝙴𝚁𝙴𝙳 𝙱𝚈 𝚂𝚄𝚁𝙰𝙽𝙶𝙰 𝙲𝙷𝙰𝙼𝙸𝚃𝙷 🫟</p>
+  </div>
+
+  <button id="newChatBtn"
+    class="ml-auto text-xs bg-gray-800 px-3 py-1.5 rounded-full hover:bg-gray-700">
+    New Chat
+  </button>
+</header>
+
+<!-- CHAT AREA -->
+<div id="chatContainer" class="px-4 py-3 space-y-4">
+
+  <div id="initialWelcome" class="text-center text-gray-400 mt-20">
+    <i class="fa-solid fa-sparkles text-4xl mb-3 text-cyan-400"></i>
+    <p class="text-sm">
+      ආයුබෝවන්!<br>
+      🫟 𝐙𝙰𝙽𝙏𝘼 𝐀𝙸 🫟 ඔබට උදව් කරන්න සූදානම්.
+    </p>
+  </div>
+
+</div>
+
+<!-- INPUT BAR -->
+<div class="input-bar fixed bottom-0 left-0 right-0 border-t border-cyan-900/50 z-50">
+  <div class="flex gap-3 items-end max-w-4xl mx-auto px-4 py-4">
+
+    <!-- Attach File Button -->
+    <label class="text-cyan-400 hover:text-cyan-300 transition pb-1 cursor-pointer">
+      <i class="fa-solid fa-paperclip text-2xl"></i>
+      <input id="fileInput" type="file" class="hidden" accept="*/*" />
+    </label>
+
+    <!-- Emoji Button -->
+    <button id="emojiBtn" type="button" class="text-cyan-400 hover:text-cyan-300 transition pb-1">
+      <i class="fa-solid fa-face-smile text-2xl"></i>
+    </button>
+
+    <!-- Input + Preview -->
+    <div class="flex-1 relative">
+      <input
+        id="userInput"
+        type="text"
+        placeholder="Message 🫟 𝐙𝙰𝙽𝙏𝘼 𝐀𝙸 🫟 ..."
+        autocomplete="off"
+        class="w-full bg-black/50 border border-cyan-800/50 rounded-2xl px-5 py-3.5 text-white placeholder-cyan-600/70
+               focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/30
+               shadow-[0_0_10px_rgba(6,182,212,0.3)] transition-all duration-300"
+      />
+      <div id="filePreview" class="mt-2 hidden"></div>
+      <button id="clearFile" class="absolute right-12 bottom-3 text-cyan-400 hidden">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Send -->
+    <button
+      id="sendBtn"
+      class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black
+             w-12 h-12 rounded-full flex items-center justify-center shadow-lg
+             hover:shadow-[0_0_20px_rgba(6,182,212,0.8)] transition-all duration-300"
+    >
+      <i class="fa-solid fa-arrow-up text-lg font-bold"></i>
+    </button>
+
+  </div>
+</div>
+
+<script>
+  const chatContainer = document.getElementById('chatContainer');
+  const userInput = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const newChatBtn = document.getElementById('newChatBtn');
+  const initialWelcome = document.getElementById('initialWelcome');
+  const emojiBtn = document.getElementById('emojiBtn');
+  const fileInput = document.getElementById('fileInput');
+  const filePreview = document.getElementById('filePreview');
+  const clearFile = document.getElementById('clearFile');
+
+  let currentFile = null;
+
+  let chatId = localStorage.getItem('batgpt_chatid') || null;
+  let messages = JSON.parse(localStorage.getItem('batgpt_messages')) || [];
+
+  function time(t){return t.toLocaleTimeString('si-LK',{hour:'2-digit',minute:'2-digit'})}
+
+  function addMessage(content, role, t=new Date()){
+    if(initialWelcome) initialWelcome.remove();
+
+    const row = document.createElement('div');
+    row.className = `flex ${role==='user'?'justify-end':'justify-start'} max-w-3xl mx-auto`;
+
+    const bubble = document.createElement('div');
+    bubble.className = `message-bubble px-4 py-2.5 text-sm max-w-full ${role==='user'?'bubble-user':'bubble-ai'}`;
+
+    bubble.innerHTML = content;
+
+    const copy = document.createElement('div');
+    copy.className = 'copy-btn';
+    copy.innerHTML = '<i class="fa-solid fa-copy"></i>';
+    copy.onclick = () => navigator.clipboard.writeText(content.replace(/<[^>]*>/g, ''));
+
+    const ts = document.createElement('div');
+    ts.className = 'timestamp';
+    ts.textContent = time(t);
+
+    bubble.append(copy, ts);
+    row.appendChild(bubble);
+    chatContainer.appendChild(row);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  if(messages.length){
+    initialWelcome?.remove();
+    messages.forEach(m => addMessage(m.content, m.role, new Date(m.timestamp)));
+  }
+
+  // File preview
+  fileInput.onchange = () => {
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      currentFile = file;
+
+      filePreview.innerHTML = '';
+      filePreview.classList.remove('hidden');
+      clearFile.classList.remove('hidden');
+
+      if (file.type.startsWith('image/')) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        filePreview.appendChild(img);
+      } else if (file.type.startsWith('video/')) {
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(file);
+        video.controls = true;
+        filePreview.appendChild(video);
+      } else if (file.type === 'application/pdf') {
+        filePreview.innerHTML = `<div class="text-cyan-400"><i class="fa-solid fa-file-pdf text-4xl"></i><p>${file.name}</p></div>`;
+      } else {
+        filePreview.innerHTML = `<div class="text-cyan-400"><i class="fa-solid fa-file text-4xl"></i><p>${file.name} (${(file.size/1024/1024).toFixed(2)} MB)</p></div>`;
+      }
+
+      userInput.focus();
+    }
+  };
+
+  clearFile.onclick = () => {
+    fileInput.value = '';
+    currentFile = null;
+    filePreview.classList.add('hidden');
+    clearFile.classList.add('hidden');
+  };
+
+  document.querySelector('.input-bar').addEventListener('click', (e) => {
+    if (!e.target.closest('#userInput') && !e.target.closest('#fileInput') && !e.target.closest('#emojiBtn')) {
+      userInput.focus();
+    }
+  });
+
+  emojiBtn.onclick = () => {
+    userInput.focus();
+    setTimeout(() => userInput.setSelectionRange(userInput.value.length, userInput.value.length), 100);
+  };
+
+  async function sendMessage(){
+    const text = userInput.value.trim();
+    if (!text && !currentFile) return;
+
+    let content = text ? text.replace(/\n/g, '<br>') : '';
+
+    if (currentFile) {
+      if (content) content += '<br><br>';
+      content += filePreview.innerHTML;
+    }
+
+    const now = new Date();
+    addMessage(content, 'user', now);
+    messages.push({role:'user', content, timestamp:now});
+    localStorage.setItem('batgpt_messages', JSON.stringify(messages));
+
+    userInput.value = '';
+    clearFile.onclick();
+
+    const loading = document.createElement('div');
+    loading.className = 'flex justify-start max-w-3xl mx-auto';
+    loading.innerHTML = '<div class="bubble-ai px-4 py-2"><div class="loading-dots"><span>.</span><span>.</span><span>.</span></div></div>';
+    chatContainer.appendChild(loading);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    try {
+      const url = chatId
+        ? `https://batgpt.vercel.app/api/gpt?chatid=${chatId}&message=${encodeURIComponent(text || 'File attached')}`
+        : `https://batgpt.vercel.app/api/gpt?message=${encodeURIComponent(text || 'File attached')}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+      loading.remove();
+
+      if (data.ok) {
+        const t = new Date();
+        addMessage(data.reply, 'assistant', t);
+        messages.push({role:'assistant', content:data.reply, timestamp:t});
+        localStorage.setItem('batgpt_messages', JSON.stringify(messages));
+        if (data.chatid) {
+          chatId = data.chatid;
+          localStorage.setItem('batgpt_chatid', chatId);
+        }
+      } else {
+        addMessage('Error: ' + (data.error || 'No reply'), 'assistant');
+      }
+    } catch (err) {
+      loading.remove();
+      addMessage('Network error – check internet connection.', 'assistant');
+    }
+  }
+
+  sendBtn.onclick = sendMessage;
+  userInput.onkeydown = e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  newChatBtn.onclick = () => {
+    chatId = null;
+    messages = [];
+    localStorage.clear();
+    chatContainer.innerHTML = '<div id="initialWelcome" class="text-center text-gray-400 mt-20"><i class="fa-solid fa-sparkles text-4xl mb-3 text-cyan-400"></i><p class="text-sm">ආයුබෝවන්!<br>🫟 𝐙𝙰𝙽𝙏𝘼 𝐀𝙸 🫟 ඔබට උදව් කරන්න සූදානම්.</p></div>';
+  };
+
+  window.addEventListener('resize', () => {
+    setTimeout(() => chatContainer.scrollTop = chatContainer.scrollHeight, 300);
+  });
+</script>
+
+</body>
+</html>
